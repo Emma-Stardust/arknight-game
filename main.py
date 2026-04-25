@@ -11,6 +11,7 @@ import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI()
 
@@ -297,11 +298,20 @@ async def broadcast():
 
 # ── HTTP ────────────────────────────────────────────────────
 
+# ── HTTP ────────────────────────────────────────────────────
+
+# Serve built frontend (from dist/) if available, otherwise serve raw files
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "dist")
+if not os.path.isdir(STATIC_DIR):
+    STATIC_DIR = os.path.dirname(__file__)
+
+
 @app.get("/")
 async def serve_index():
-    return FileResponse("index.html")
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
-app.mount("/", StaticFiles(directory="."), name="static")
+
+app.mount("/", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # ── Timer background task ───────────────────────────────────

@@ -29,6 +29,29 @@
 | 积分不足 | 强制 ALL IN |
 | 全员淘汰 | 游戏自动结束 |
 
+## 项目结构
+
+```
+arknight-game/
+├── main.py              # Python 后端 (FastAPI + WebSocket)
+├── requirements.txt     # Python 依赖
+├── frontend/            # Vue 3 前端源码
+│   ├── src/
+│   │   ├── App.vue              # 根组件
+│   │   ├── main.js              # 入口
+│   │   ├── style.css            # 全局样式
+│   │   ├── composables/
+│   │   │   └── useWebSocket.js  # WebSocket 状态管理
+│   │   └── components/
+│   │       ├── JoinScreen.vue   # 加入页面
+│   │       ├── AdminPanel.vue   # 管理员面板
+│   │       └── PlayerSection.vue # 玩家区域
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+└── dist/                # 构建产物 (npm run build 后生成)
+```
+
 ## 安装
 
 ### 1. 克隆仓库
@@ -52,7 +75,22 @@ export ADMIN_PASSWORD="你的密码"
 
 密码通过环境变量 `ADMIN_PASSWORD` 设置，不设置则默认为空（无法使用管理功能）。
 
-### 4. 启动服务
+### 4. 前端开发（可选）
+
+如果需要修改前端，进入 frontend 目录：
+
+```bash
+cd frontend
+npm install
+npm run dev      # 开发服务器，自动代理后端 WebSocket
+npm run build    # 构建到 ../dist/ 目录
+```
+
+开发时前端运行在 `http://localhost:5173`，自动代理 `/ws` 到后端。
+
+> 不需要改前端？直接运行后端即可，已内置构建好的页面。
+
+### 5. 启动服务
 
 ```bash
 python main.py
@@ -93,8 +131,9 @@ python main.py --port 9000
 ## 技术栈
 
 - **后端**：Python + FastAPI + WebSocket
-- **前端**：Vue 3（CDN，无需构建）
+- **前端**：Vue 3 + Vite（SFC 单文件组件）
 - **通信**：WebSocket 实时双向同步，版本号强一致性
+- **构建**：Vite 打包到 `dist/`，后端自动服务静态文件
 
 ## License
 
