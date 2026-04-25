@@ -288,9 +288,11 @@ class GameState:
         players = {}
         elapsed = time.time() - self.timer_start if self.timer_start and self.round_phase == "voting" else 0
         remaining = max(0, self.timer_duration - elapsed) if self.round_phase == "voting" else 0
+        remaining_int = int(remaining)
         for uid, p in self.players.items():
             # Hide other players' choices in last 7 seconds of voting (official mode)
-            if for_player and uid != for_player and self.round_phase == "voting" and remaining <= 7:
+            # Use remaining_int (same value sent to frontend) to avoid float/int mismatch
+            if for_player and uid != for_player and self.round_phase == "voting" and remaining_int <= 7:
                 show_choice = None
                 show_confirmed = p["choice"] is not None
             else:
