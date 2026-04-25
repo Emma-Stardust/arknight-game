@@ -82,7 +82,7 @@
           <div class="label">ALL IN</div>
           <div class="desc">投入全部，胜利翻倍，失败淘汰</div>
         </div>
-        <div class="toggle" :class="{ on: allIn }" @click="$emit('toggleAllIn'); submitVote()">
+        <div class="toggle" :class="{ on: allIn }" @click="handleToggleAllIn">
           <div class="knob"></div>
         </div>
       </div>
@@ -211,6 +211,8 @@
 </template>
 
 <script setup>
+import { nextTick } from 'vue'
+
 defineProps({
   state: Object,
   isAdmin: Boolean,
@@ -231,8 +233,18 @@ defineProps({
   formatScore: Function,
   vote: Function,
   submitVote: Function,
+  toggleAllInAndResubmit: Function,
   confirmVote: Function,
 })
 
 const emit = defineEmits(['update:allIn', 'toggleAllIn'])
+
+function handleToggleAllIn() {
+  // Use the atomic toggle+resubmit from parent to avoid stale allIn value
+  if (props.toggleAllInAndResubmit) {
+    props.toggleAllInAndResubmit()
+  } else {
+    emit('toggleAllIn')
+  }
+}
 </script>

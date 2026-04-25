@@ -62,7 +62,7 @@
 
         <!-- Admin Panel -->
         <AdminPanel
-          v-if="state.round_phase !== 'finished'"
+          v-if="isAdmin"
           :is-admin="isAdmin"
           :show-admin="showAdmin"
           :state="state"
@@ -100,6 +100,7 @@
           :format-score="formatScore"
           :vote="vote"
           :submit-vote="submitVote"
+          :toggle-all-in-and-resubmit="toggleAllInAndResubmit"
           :confirm-vote="confirmVote"
           @toggle-all-in="allIn = !allIn"
         />
@@ -149,6 +150,7 @@ const {
   unlockAdmin,
   vote,
   submitVote,
+  toggleAllInAndResubmit,
   confirmVote,
   confirmAnswer,
   forceConfirmAnswer,

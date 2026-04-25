@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+TIMER_DURATION = int(os.environ.get("TIMER_DURATION", "60"))
 
 # Hardcoded round stakes
 ROUND_STAKES = [2000, 2400, 3000, 4000, 5500, 8000, 12000, 18000, 30000, 50000]
@@ -52,7 +53,7 @@ class GameState:
         self.players: dict = {}
         self.history: list = []
         self.timer_start = 0
-        self.timer_duration = 300
+        self.timer_duration = TIMER_DURATION
         self.timer_expired = False
         self.titles: dict = {}  # uid -> [title strings]
 
@@ -283,14 +284,15 @@ class GameState:
             return True
         return False
 
-    def to_dict(self, *, for_player: str | None = None) -> dict:
+    def to_dict(self, *, for_player: str | None = None, connected_uids: set | None = None) -> dict:
         players = {}
         for uid, p in self.players.items():
             d = {"name": p["name"], "score": p["score"],
                  "eliminated": p["eliminated"], "all_in": p.get("all_in", False),
                  "can_all_in": self.can_all_in(uid),
                  "confirmed": p.get("confirmed", False),
-                 "choice": p["choice"]}
+                 "choice": p["choice"],
+                 "connected": uid in connected_uids if connected_uids is not None else True}
             players[uid] = d
         active = [p for p in self.players.values() if not p["eliminated"]]
         confirmed_list = [p for p in active if p.get("confirmed")]
@@ -324,15 +326,16 @@ UID_RE = re.compile(r'^[A-Za-z0-9_-]{2,16}$')
 
 
 async def broadcast():
-    payload_cache = {}
+    broken = []
+    connected_uids = set(all_ws.keys())
     for uid, ws in list(all_ws.items()):
         try:
-            if uid not in payload_cache:
-                payload_cache[uid] = json.dumps({"type": "state",
-                                                  "data": game.to_dict(for_player=uid)})
-            await ws.send_text(payload_cache[uid])
+            await ws.send_text(json.dumps({"type": "state",
+                                           "data": game.to_dict(for_player=uid, connected_uids=connected_uids)}))
         except Exception:
-            del all_ws[uid]
+            broken.append(uid)
+    for uid in broken:
+        all_ws.pop(uid, None)
 
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "dist")
@@ -399,7 +402,7 @@ async def ws_endpoint(ws: WebSocket):
                         all_ws[uid] = ws
                 await ws.send_text(json.dumps({"type": "joined", "user_id": uid,
                                                "is_admin": is_admin,
-                                               "data": game.to_dict(for_player=uid)}))
+                                               "data": game.to_dict(for_player=uid, connected_uids=set(all_ws.keys()))}))
                 await broadcast()
 
             elif action == "reconnect":
@@ -417,7 +420,7 @@ async def ws_endpoint(ws: WebSocket):
                         all_ws[uid] = ws
                     await ws.send_text(json.dumps({"type": "reconnected", "user_id": uid,
                                                    "is_admin": is_admin,
-                                                   "data": game.to_dict(for_player=uid)}))
+                                                   "data": game.to_dict(for_player=uid, connected_uids=set(all_ws.keys()))}))
                     await broadcast()
                 else:
                     await ws.send_text(json.dumps({"type": "error", "message": "ID不存在，请重新加入"}))
@@ -433,7 +436,7 @@ async def ws_endpoint(ws: WebSocket):
             elif action == "sync":
                 if uid and uid in game.players:
                     await ws.send_text(json.dumps({"type": "state",
-                                                   "data": game.to_dict(for_player=uid)}))
+                                                   "data": game.to_dict(for_player=uid, connected_uids=set(all_ws.keys()))}))
 
             elif action == "vote":
                 if uid and uid in game.players:
@@ -486,6 +489,7 @@ async def ws_endpoint(ws: WebSocket):
             elif action == "send_reminder" and is_admin:
                 reminder_text = msg.get("text", "请尽快确认你的选择！")
                 unconfirmed = game.get_unconfirmed()
+                broken = []
                 for uid_key, ws_player in list(all_ws.items()):
                     p = game.players.get(uid_key)
                     if p and not p["eliminated"] and not p.get("confirmed"):
@@ -493,13 +497,20 @@ async def ws_endpoint(ws: WebSocket):
                             await ws_player.send_text(json.dumps({"type": "reminder",
                                                                   "message": reminder_text}))
                         except Exception:
-                            pass
+                            broken.append(uid_key)
+                for uid_key in broken:
+                    all_ws.pop(uid_key, None)
                 await ws.send_text(json.dumps({"type": "info",
                                                "message": f"已提醒: {', '.join(unconfirmed)}"}))
 
     except WebSocketDisconnect:
-        if uid and uid in all_ws:
+        pass
+    except Exception:
+        pass
+    finally:
+        if uid and uid in all_ws and all_ws[uid] is ws:
             del all_ws[uid]
+            await broadcast()
 
 
 @app.on_event("startup")

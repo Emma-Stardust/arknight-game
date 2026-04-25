@@ -136,8 +136,13 @@ export function useWebSocket() {
     ws.value = new WebSocket(`${proto}://${location.host}/ws`)
     ws.value.onopen = () => {
       reconnecting.value = false
-      if (joined.value) return
       const saved = localStorage.getItem('game-uid')
+      if (joined.value && saved) {
+        // Re-register this WebSocket with the server after reconnection
+        const savedPwd = localStorage.getItem('game-admin-pwd') || ''
+        ws.value.send(JSON.stringify({ action: 'reconnect', user_id: saved, admin_password: savedPwd }))
+        return
+      }
       if (saved) {
         const savedPwd = localStorage.getItem('game-admin-pwd') || ''
         ws.value.send(JSON.stringify({ action: 'reconnect', user_id: saved, admin_password: savedPwd }))
@@ -235,6 +240,14 @@ export function useWebSocket() {
     if (choice === 'watch') allIn.value = false
     const effectiveAllIn = choice !== 'watch' && forcedAllIn.value ? true : allIn.value
     sendAction('vote', { choice, all_in: effectiveAllIn })
+  }
+
+  function toggleAllInAndResubmit() {
+    if (!myChoice.value || myChoice.value === 'watch' || myConfirmed.value) return
+    allIn.value = !allIn.value
+    // allIn is now updated, submit with the new value
+    const effectiveAllIn = forcedAllIn.value ? true : allIn.value
+    sendAction('vote', { choice: myChoice.value, all_in: effectiveAllIn })
   }
 
   function submitVote() {
@@ -348,6 +361,7 @@ export function useWebSocket() {
     unlockAdmin,
     vote,
     submitVote,
+    toggleAllInAndResubmit,
     confirmVote,
     confirmAnswer,
     forceConfirmAnswer,
