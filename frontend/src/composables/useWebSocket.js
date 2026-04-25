@@ -193,12 +193,13 @@ export function useWebSocket() {
   }
 
   function applyState(data) {
-    if (data.version !== undefined && data.version <= serverVersion.value) return
+    // Only skip if we know this is a genuinely older state
+    // Same-version updates may carry different computed data (remaining, etc)
+    if (data.version !== undefined && data.version < serverVersion.value) return
     if (data.version !== undefined) serverVersion.value = data.version
     if (data.timer_remaining !== undefined && data.round_phase === 'voting') {
-      if (Math.abs(data.timer_remaining - localTimerRemaining.value) > 3) {
-        localTimerRemaining.value = data.timer_remaining
-      }
+      // Always trust server time during voting to avoid drift at critical boundaries
+      localTimerRemaining.value = data.timer_remaining
     } else if (data.round_phase !== 'voting') {
       localTimerRemaining.value = 0
     }
