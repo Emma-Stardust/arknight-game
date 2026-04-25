@@ -8,7 +8,8 @@
 
 - 10轮对局，每轮选择 LEFT / RIGHT / 观望
 - 实时 WebSocket 同步，所有玩家状态一致，支持断线重连
-- 1分钟倒计时（可通过 `TIMER_DURATION` 环境变量配置），超时未选择自动观望
+- 20秒倒计时（可通过 `TIMER_DURATION` 环境变量配置），超时未选择自动观望
+- 最后7秒隐藏其他玩家选择，倒计时变红跳动提醒
 - ALL IN 机制：第6轮起可自愿 ALL IN，积分不足时强制 ALL IN
 - 管理员控制面板：设定积分、公布答案、回滚、催促
 - Apple Design 风格，支持深色/浅色模式
@@ -70,8 +71,8 @@ pip install -r requirements.txt
 ### 3. 设置环境变量
 
 ```bash
-export ADMIN_PASSWORD="你的密码"    # 管理员密码，不设置则默认为空（无法使用管理功能）
-export TIMER_DURATION=60            # 每轮倒计时（秒），默认 60 秒
+export ADMIN_PASSWORD="你的密码"    # 管理员密码，默认 Stardust
+export TIMER_DURATION=20            # 每轮倒计时（秒），默认 20 秒
 ```
 
 ### 4. 前端开发（可选）
@@ -112,7 +113,7 @@ python main.py --port 9000
 3. 等待管理员开始游戏
 4. 每轮选择 LEFT 或 RIGHT，也可以观望
 5. 选择后点「确定！」锁定，锁定后无法更改
-6. 倒计时1分钟，超时未选择自动观望
+6. 倒计时20秒，超时未选择自动观望
 
 ### 管理员
 

@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Stardust")
 TIMER_DURATION = int(os.environ.get("TIMER_DURATION", "20"))
 
 # Hardcoded round stakes
@@ -353,6 +353,10 @@ if not os.path.isdir(STATIC_DIR):
 @app.get("/")
 async def serve_index():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+@app.get("/favicon.ico")
+async def serve_favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"))
 
 
 # Mount static files LAST so WebSocket route at /ws is matched first
