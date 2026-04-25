@@ -17,3 +17,5 @@ Thumbs.db
 # Sensitive
 *.env
 .env.*
+node_modules/
+dist/

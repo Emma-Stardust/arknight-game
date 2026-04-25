@@ -1,7 +1,7 @@
 {
-  "name": "arknight-game-frontend",
-  "version": "1.0.0",
+  "name": "game-scoring-frontend",
   "private": true,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.0",
-    "vite": "^6.3.0"
+    "@vitejs/plugin-vue": "^5.2.3",
+    "vite": "^6.3.4"
   }
 }
