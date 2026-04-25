@@ -94,12 +94,15 @@ body { background: var(--bg); color: var(--text) }
 @keyframes stakeAppear { from { opacity: 0; transform: scale(.8) translateY(8px) } to { opacity: 1; transform: scale(1) translateY(0) } }
 .timer { margin-top: 10px; font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; transition: color .3s }
 .timer.warning { color: var(--orange); animation: timerPulse 1s ease-in-out infinite }
-.timer.danger { color: var(--red); animation: timerPulse .5s ease-in-out infinite }
+.timer.danger { color: var(--red); }
+.timer.bounce { animation: timerBounce .6s ease-in-out infinite }
 @keyframes timerPulse { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
-.countdown-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.35); z-index: 1000; pointer-events: none; animation: countdownFadeIn .3s ease }
-.countdown-number { font-size: 120px; font-weight: 900; color: var(--red); text-shadow: 0 0 40px rgba(255,59,48,0.6); animation: countdownPop .5s ease }
-@keyframes countdownFadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes countdownPop { 0% { transform: scale(1.5); opacity: 0 } 50% { transform: scale(1.1) } 100% { transform: scale(1); opacity: 1 } }
+@keyframes timerBounce { 0%,100% { transform: scale(1) } 50% { transform: scale(1.2) } }
+.lb-choice, .lb-tag.confirmed { transition: opacity .3s, transform .3s }
+.lb-choice.hidden { color: var(--orange); opacity: .7 }
+.choice-fade-enter-active, .choice-fade-leave-active { transition: opacity .3s, transform .3s }
+.choice-fade-enter-from { opacity: 0; transform: scale(.8) }
+.choice-fade-leave-to { opacity: 0; transform: scale(.8) }
 
 .all-in-tip {
   text-align: center;

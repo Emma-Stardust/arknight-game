@@ -11,15 +11,10 @@
       <div
         v-if="state.round_phase === 'voting' && localTimerRemaining > 0"
         class="timer"
-        :class="{ warning: timerDisplay.warning, danger: timerDisplay.danger }"
+        :class="{ warning: timerDisplay.warning, danger: timerDisplay.danger, bounce: timerDisplay.countdown }"
       >
         {{ timerDisplay.text }}
       </div>
-    </div>
-
-    <!-- 7-second countdown overlay -->
-    <div v-if="timerDisplay.countdown && state.round_phase === 'voting'" class="countdown-overlay">
-      <span class="countdown-number">{{ localTimerRemaining }}</span>
     </div>
 
     <!-- R6+ ALL IN tip -->
@@ -192,9 +187,12 @@
         <div class="lb-name" :class="{ eliminated: p.eliminated }">
           {{ p.name }}<span class="lb-uid">@{{ p.uid }}</span>
         </div>
-        <span v-if="p.choice === 'left'" class="lb-choice left">L</span>
-        <span v-else-if="p.choice === 'right'" class="lb-choice right">R</span>
-        <span v-else-if="p.choice === 'watch'" class="lb-choice watch">-</span>
+        <transition name="choice-fade">
+          <span v-if="p.choice === 'left'" class="lb-choice left">L</span>
+          <span v-else-if="p.choice === 'right'" class="lb-choice right">R</span>
+          <span v-else-if="p.choice === 'watch'" class="lb-choice watch">-</span>
+          <span v-else-if="p.confirmed && p.choice === null" class="lb-choice hidden">?</span>
+        </transition>
         <span v-if="p.all_in" class="lb-tag allin">ALL IN</span>
         <span v-if="p.confirmed" class="lb-tag confirmed">OK</span>
         <div class="lb-score" :class="{ eliminated: p.eliminated }">
