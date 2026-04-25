@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>明日方舟：斗蛐蛐 计分板</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',system-ui,sans-serif;line-height:1.5;overflow-x:hidden;transition:background .3s,color .3s}
+
+:root{
+  --bg:#F2F2F7;--bg-card:#FFFFFF;--bg-card-hover:#F9F9FB;
+  --text:#1C1C1E;--text2:#8E8E93;--text3:#AEAEB2;
+  --accent:#007AFF;--accent-hover:#0056CC;--accent-light:rgba(0,122,255,.1);
+  --red:#FF3B30;--red-bg:rgba(255,59,48,.08);--red-border:rgba(255,59,48,.25);
+  --green:#34C759;--green-bg:rgba(52,199,89,.08);--green-border:rgba(52,199,89,.25);
+  --orange:#FF9500;--orange-bg:rgba(255,149,0,.1);
+  --border:rgba(60,60,67,.08);--divider:rgba(60,60,67,.12);
+  --shadow:0 1px 8px rgba(0,0,0,.06);--shadow-lg:0 4px 24px rgba(0,0,0,.1);
+  --glass:rgba(255,255,255,.72);--radius:16px;--radius-sm:12px;--radius-xs:8px;
+  --arknights:#1A1A2E;--arknights-gold:#D4A843;--arknights-blue:#16213E;
+}
+[data-theme="dark"]{
+  --bg:#0A0A0F;--bg-card:#16161E;--bg-card-hover:#1E1E28;
+  --text:#E8E8ED;--text2:#8888A0;--text3:#555568;
+  --accent:#6C8EBF;--accent-hover:#8AADDF;--accent-light:rgba(108,142,191,.12);
+  --red:#FF453A;--red-bg:rgba(255,69,58,.12);--red-border:rgba(255,69,58,.3);
+  --green:#30D158;--green-bg:rgba(48,209,88,.12);--green-border:rgba(48,209,88,.3);
+  --orange:#FF9F0A;--orange-bg:rgba(255,159,10,.15);
+  --border:rgba(255,255,255,.06);--divider:rgba(255,255,255,.08);
+  --shadow:0 1px 8px rgba(0,0,0,.3);--shadow-lg:0 4px 24px rgba(0,0,0,.5);
+  --glass:rgba(10,10,15,.85);
+}
+body{background:var(--bg);color:var(--text)}
+
+.bg-pattern{position:fixed;top:0;left:0;right:0;bottom:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-pattern::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 20%,rgba(212,168,67,.06) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(108,142,191,.06) 0%,transparent 50%);animation:bgDrift 20s ease-in-out infinite alternate}
+@keyframes bgDrift{0%{transform:translate(0,0) rotate(0deg)}100%{transform:translate(-3%,2%) rotate(2deg)}}
+.particle{position:fixed;width:3px;height:3px;border-radius:50%;background:var(--arknights-gold);opacity:0;pointer-events:none;z-index:1}
+.particle:nth-child(1){left:10%;animation:pf 8s 0s infinite}
+.particle:nth-child(2){left:25%;animation:pf 10s 1s infinite}
+.particle:nth-child(3){left:45%;animation:pf 7s 2s infinite}
+.particle:nth-child(4){left:65%;animation:pf 9s .5s infinite}
+.particle:nth-child(5){left:80%;animation:pf 11s 3s infinite}
+.particle:nth-child(6){left:90%;animation:pf 8s 1.5s infinite}
+@keyframes pf{0%{bottom:-10px;opacity:0;transform:translateX(0)}10%{opacity:.3}90%{opacity:.3}100%{bottom:110%;opacity:0;transform:translateX(30px)}}
+
+.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}
+.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}.gap-20{gap:20px}
+.w-full{width:100%}.text-center{text-align:center}
+.font-semibold{font-weight:600}.font-bold{font-weight:700}
+.text-sm{font-size:13px}.text-xs{font-size:11px}.text-lg{font-size:18px}.text-xl{font-size:22px}
+.opacity-50{opacity:.5}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+
+#app{min-height:100dvh;display:flex;flex-direction:column;position:relative;z-index:2}
+.page{flex:1;padding:20px;max-width:480px;margin:0 auto;width:100%}
+
+.top-bar{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:var(--glass);border-bottom:.5px solid var(--divider);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.top-bar h1{font-size:15px;font-weight:700;letter-spacing:.3px}
+.top-bar-right{display:flex;align-items:center;gap:8px}
+
+.icon-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:16px}
+.icon-btn:active{transform:scale(.9)}
+.icon-btn-theme{background:var(--accent-light);color:var(--accent)}
+.icon-btn-admin{background:var(--orange-bg);color:var(--orange);position:relative}
+.icon-btn-admin.active{background:var(--orange);color:#FFF}
+.icon-btn-admin .dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--orange)}
+
+.join-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:32px 24px;text-align:center}
+.join-emblem{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#1A1A2E,#16213E);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:emblemPulse 3s ease-in-out infinite}
+.join-emblem span{font-size:32px;color:#D4A843;font-weight:800}
+@keyframes emblemPulse{0%,100%{box-shadow:0 4px 20px rgba(212,168,67,.15)}50%{box-shadow:0 4px 30px rgba(212,168,67,.3)}}
+.join-title{font-size:24px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px}
+.join-sub{font-size:16px;font-weight:500;color:var(--arknights-gold);margin-bottom:4px}
+.join-desc{color:var(--text2);font-size:13px;margin-bottom:28px}
+.input-group{width:100%;max-width:320px;margin-bottom:12px}
+.input-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);text-align:left;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.input-group input{width:100%;padding:14px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-card);color:var(--text);font-size:16px;outline:none;transition:border .2s}
+.input-group input:focus{border-color:var(--accent)}
+.input-group input::placeholder{color:var(--text3)}
+.input-group .hint{font-size:11px;color:var(--text3);text-align:left;margin-top:4px}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px 20px;border-radius:var(--radius-sm);border:none;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#FFF}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:var(--accent-light);color:var(--accent)}
+.btn-danger{background:var(--red-bg);color:var(--red)}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border)}
+.btn-sm{padding:10px 16px;font-size:14px;border-radius:var(--radius-xs)}
+.btn:disabled{opacity:.4;pointer-events:none}
+
+.card{background:var(--bg-card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:.5px solid var(--border);transition:all .25s}
+.card-header{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-waiting{background:var(--orange-bg);color:var(--orange)}
+.badge-voting{background:var(--accent-light);color:var(--accent)}
+.badge-revealed{background:var(--green-bg);color:var(--green)}
+.badge-idle{background:var(--bg-card);color:var(--text2);border:1px solid var(--border)}
+
+.round-info{text-align:center;padding:20px 0 4px}
+.round-number{font-size:14px;color:var(--text2);font-weight:500}
+.round-number strong{color:var(--text);font-weight:700}
+.round-stake{font-size:36px;font-weight:800;letter-spacing:-1.5px;margin-top:4px;animation:stakeAppear .4s cubic-bezier(.34,1.56,.64,1)}
+.round-stake span{font-size:14px;font-weight:500;color:var(--text2);margin-right:2px}
+@keyframes stakeAppear{from{opacity:0;transform:scale(.8) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.timer{margin-top:10px;font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:1px;transition:color .3s}
+.timer.warning{color:var(--orange);animation:timerPulse 1s ease-in-out infinite}
+.timer.danger{color:var(--red);animation:timerPulse .5s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.choice{position:relative;border-radius:var(--radius);padding:28px 16px;text-align:center;cursor:pointer;border:2px solid var(--border);background:var(--bg-card);transition:all .25s;user-select:none;-webkit-user-select:none;overflow:hidden}
+.choice:active{transform:scale(.96)}
+.choice::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;pointer-events:none}
+.choice-left::after{background:radial-gradient(circle at center,rgba(255,59,48,.12) 0%,transparent 70%)}
+.choice-right::after{background:radial-gradient(circle at center,rgba(52,199,89,.12) 0%,transparent 70%)}
+.choice-left.selected::after,.choice-left:hover::after{opacity:1}
+.choice-right.selected::after,.choice-right:hover::after{opacity:1}
+.choice .choice-icon{font-size:32px;font-weight:800;display:block;margin-bottom:6px;letter-spacing:-1px;position:relative;z-index:1}
+.choice .choice-label{font-size:14px;font-weight:600;color:var(--text2);position:relative;z-index:1}
+.choice-left .choice-icon{color:var(--red)}
+.choice-right .choice-icon{color:var(--green)}
+.choice-left:hover,.choice-left.selected{border-color:var(--red);background:var(--red-bg)}
+.choice-left.selected .choice-label{color:var(--red)}
+.choice-right:hover,.choice-right.selected{border-color:var(--green);background:var(--green-bg)}
+.choice-right.selected .choice-label{color:var(--green)}
+.choice.disabled{opacity:.4;pointer-events:none}
+.choice.all-in-active{border-color:var(--orange)!important;box-shadow:0 0 0 3px var(--orange-bg);animation:allInGlow 1.5s ease-in-out infinite alternate}
+@keyframes allInGlow{from{box-shadow:0 0 0 3px var(--orange-bg)}to{box-shadow:0 0 12px 3px rgba(255,149,0,.25)}}
+
+.watch-btn{margin-top:16px}
+.watch-btn .btn{padding:12px;font-size:14px;color:var(--text2);background:var(--bg-card);border:1.5px solid var(--border)}
+.watch-btn .btn.selected{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+
+.all-in-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:14px 16px;border-radius:var(--radius-sm);background:var(--orange-bg);border:1px solid rgba(255,149,0,.2);animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.all-in-row .label{font-size:14px;font-weight:600;color:var(--orange)}
+.all-in-row .desc{font-size:11px;color:var(--text2);margin-top:2px}
+.toggle{position:relative;width:51px;height:31px;border-radius:16px;background:var(--text3);cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--orange)}
+.toggle .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#FFF;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .2s}
+.toggle.on .knob{transform:translateX(20px)}
+
+.my-score{margin-top:24px;padding:20px;border-radius:var(--radius);background:var(--bg-card);box-shadow:var(--shadow);border:.5px solid var(--border);text-align:center;position:relative;overflow:hidden}
+.my-score::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--arknights-gold),var(--green))}
+.my-score .label{font-size:13px;color:var(--text2);font-weight:500}
+.my-score .value{font-size:40px;font-weight:700;letter-spacing:-1px;margin-top:2px;transition:all .3s}
+.my-score .change{font-size:14px;font-weight:600;margin-top:4px;animation:changePop .4s cubic-bezier(.34,1.56,.64,1)}
+.my-score .change.positive{color:var(--green)}
+.my-score .change.negative{color:var(--red)}
+@keyframes changePop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+.lb-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--divider);animation:listIn .3s ease backwards}
+.lb-item:last-child{border-bottom:none}
+@keyframes listIn{from{opacity:0;transform:translateX(-8px)}}
+.lb-rank{width:22px;font-size:13px;font-weight:700;color:var(--text3);text-align:center}
+.lb-rank.top{color:var(--arknights-gold);font-size:15px}
+.lb-name{flex:1;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-uid{font-size:10px;color:var(--text3);margin-left:2px}
+.lb-name.eliminated{text-decoration:line-through;color:var(--text3)}
+.lb-score{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;min-width:50px;text-align:right}
+.lb-score.eliminated{color:var(--text3)}
+.lb-choice{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:2px}
+.lb-choice.left{background:var(--red-bg);color:var(--red)}
+.lb-choice.right{background:var(--green-bg);color:var(--green)}
+.lb-choice.watch{background:var(--bg-card);color:var(--text3);border:1px solid var(--border)}
+.lb-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:2px}
+.lb-tag.allin{background:var(--orange-bg);color:var(--orange)}
+.lb-tag.confirmed{background:var(--green-bg);color:var(--green)}
+
+.result-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--divider);animation:listIn .3s ease backwards}
+.result-item:last-child{border-bottom:none}
+.result-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.result-icon.win{background:var(--green-bg);color:var(--green);animation:iconPop .4s cubic-bezier(.34,1.56,.64,1)}
+.result-icon.lose{background:var(--red-bg);color:var(--red)}
+.result-icon.watch{background:var(--bg-card);color:var(--text3)}
+.result-icon.eliminated{background:var(--red-bg);color:var(--red);animation:iconShake .5s ease}
+@keyframes iconPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes iconShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+.result-name{flex:1;font-size:14px;font-weight:500}
+.result-change{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.result-change.pos{color:var(--green)}
+.result-change.neg{color:var(--red)}
+.result-tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;background:var(--orange-bg);color:var(--orange);margin-left:4px}
+
+/* ── Admin Panel ── */
+.admin-section{margin-bottom:16px}
+.admin-section .card{padding:16px}
+.admin-votes{font-size:14px;color:var(--text2);text-align:center;margin-top:8px}
+.admin-votes strong{color:var(--accent)}
+.stake-row{display:flex;gap:10px;align-items:stretch}
+.stake-row input{width:0;flex:1;padding:14px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-card);color:var(--text);font-size:17px;font-weight:600;outline:none;text-align:center;font-variant-numeric:tabular-nums}
+.stake-row input:focus{border-color:var(--accent)}
+.stake-row input::placeholder{color:var(--text3);font-weight:400}
+.stake-confirm{flex:0 0 auto;padding:14px 24px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#FFF;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.stake-confirm:active{transform:scale(.97)}
+.stake-confirm:disabled{opacity:.4;pointer-events:none}
+.answer-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.answer-btn{padding:14px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg-card);font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+.answer-btn:active{transform:scale(.96)}
+.answer-btn.left-ans:hover,.answer-btn.left-ans.chosen{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.answer-btn.right-ans:hover,.answer-btn.right-ans.chosen{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.admin-action-row{display:flex;gap:8px;margin-top:10px}
+.admin-action-row .btn{flex:1}
+
+.history-item{padding:10px 0;border-bottom:.5px solid var(--divider)}
+.history-item:last-child{border-bottom:none}
+.history-round{font-size:13px;font-weight:600;color:var(--text2)}
+.history-answer{font-size:14px;font-weight:600;margin-top:2px}
+.history-answer.left{color:var(--red)}
+.history-answer.right{color:var(--green)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-state .title{font-size:17px;font-weight:600;margin-bottom:4px}
+.empty-state .desc{font-size:14px;color:var(--text3)}
+
+.reconnect-banner{position:fixed;top:0;left:0;right:0;z-index:100;padding:10px 16px;background:var(--orange);color:#FFF;text-align:center;font-size:13px;font-weight:600}
+.reminder-banner{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 20px;background:linear-gradient(135deg,var(--orange),#FF6B00);color:#FFF;text-align:center;font-size:15px;font-weight:600;box-shadow:0 4px 16px rgba(255,149,0,.3);animation:reminderSlide .4s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
+@keyframes reminderSlide{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text);font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:100;animation:toastIn .3s ease;max-width:90vw;text-align:center}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+@media(max-width:380px){
+  .choices{gap:10px}.choice{padding:20px 10px}.choice .choice-icon{font-size:26px}
+  .round-stake{font-size:28px}.my-score .value{font-size:32px}
+}
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="particle"></div><div class="particle"></div><div class="particle"></div>
+<div class="particle"></div><div class="particle"></div><div class="particle"></div>
+
+<div id="app">
+  <div v-if="reconnecting" class="reconnect-banner">连接断开，正在重连...</div>
+  <div v-if="reminderBanner" class="reminder-banner" @click="reminderBanner=''">{{ reminderBanner }}</div>
+  <div v-if="toast" class="toast">{{ toast }}</div>
+
+  <!-- ─── Join Screen ─── -->
+  <div v-if="!joined" class="join-screen">
+    <div class="join-emblem"><span>AK</span></div>
+    <div class="join-title">明日方舟</div>
+    <div class="join-sub">斗蛐蛐 计分板</div>
+    <div class="join-desc">选择你的方向，押上你的积分</div>
+    <div class="input-group">
+      <label>玩家 ID</label>
+      <input v-model="uidInput" placeholder="输入你的ID" @keyup.enter="joinGame" maxlength="16" autocomplete="off" spellcheck="false">
+      <div class="hint">2-16位，字母数字下划线横杠</div>
+    </div>
+    <div class="input-group">
+      <label>昵称</label>
+      <input v-model="nameInput" placeholder="输入昵称" @keyup.enter="joinGame" maxlength="12">
+    </div>
+    <div class="input-group">
+      <label>管理员密码 (可选)</label>
+      <input v-model="adminPassword" type="password" placeholder="输入密码解锁管理" @keyup.enter="joinGame" autocomplete="off">
+    </div>
+    <div style="width:100%;max-width:320px">
+      <button class="btn btn-primary" @click="joinGame" :disabled="!canJoin">加入游戏！</button>
+    </div>
+  </div>
+
+  <!-- ─── Main View ─── -->
+  <template v-else>
+    <div class="top-bar">
+      <h1>斗蛐蛐 计分板</h1>
+      <div class="top-bar-right">
+        <span class="badge" :class="phaseBadge">{{ phaseLabel }}</span>
+        <button v-if="isAdmin" class="icon-btn icon-btn-admin active" @click="showAdmin=!showAdmin" title="管理面板">&#9881;</button>
+        <button v-else class="icon-btn icon-btn-admin" @click="unlockAdmin" title="解锁管理">&#9881;</button>
+        <button class="icon-btn icon-btn-theme" @click="toggleTheme">{{ isDark ? '&#9728;' : '&#9790;' }}</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- ── Admin Panel (collapsible) ── -->
+      <template v-if="isAdmin && showAdmin">
+        <!-- Game Not Active -->
+        <div v-if="!state.game_active" class="admin-section">
+          <div class="card">
+            <div class="card-header">管理面板</div>
+            <button class="btn btn-primary" @click="sendAction('start_game')">开始新游戏！</button>
+          </div>
+        </div>
+
+        <!-- Game Active -->
+        <template v-else>
+          <div class="round-info" style="padding-top:8px">
+            <div class="round-number">第 <strong>{{ state.current_round }}</strong> / {{ state.total_rounds }} 轮</div>
+            <div v-if="state.round_phase === 'voting' && localTimerRemaining > 0" class="timer" :class="{warning:timerDisplay.warning,danger:timerDisplay.danger}">{{ timerDisplay.text }}</div>
+          </div>
+
+          <!-- Waiting: set stake -->
+          <div v-if="state.round_phase === 'waiting'" class="admin-section">
+            <div class="card">
+              <div class="card-header">设定本轮积分</div>
+              <div class="stake-row">
+                <input v-model.number="stakeInput" type="number" placeholder="输入积分" min="1" @keyup.enter="setStake">
+                <button class="stake-confirm" @click="setStake" :disabled="!stakeInput || stakeInput <= 0">确认！</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Voting: set answer -->
+          <div v-if="state.round_phase === 'voting'" class="admin-section">
+            <div class="card">
+              <div class="card-header">选择正确答案</div>
+              <div class="admin-votes">已确认 <strong>{{ state.voted_count }}</strong> / {{ state.active_count }}</div>
+              <div v-if="!state.all_confirmed && !state.timer_expired" style="text-align:center;margin-top:8px;font-size:12px;color:var(--orange)">等待所有玩家确认...</div>
+              <div class="answer-btns">
+                <div class="answer-btn left-ans" :class="{chosen:pendingAnswer==='left'}" @click="pendingAnswer='left'">LEFT</div>
+                <div class="answer-btn right-ans" :class="{chosen:pendingAnswer==='right'}" @click="pendingAnswer='right'">RIGHT</div>
+              </div>
+              <button class="btn btn-primary mt-12" @click="confirmAnswer" :disabled="!pendingAnswer">确认答案！</button>
+              <div v-if="!state.all_confirmed && !state.timer_expired && pendingAnswer" style="margin-top:8px">
+                <button class="btn btn-danger btn-sm" @click="forceConfirmAnswer">仍要公布答案！</button>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm" style="flex:1" @click="sendReminder('别人都选完了，就差你了！')" :disabled="state.all_confirmed">催一下！</button>
+                <button class="btn btn-danger btn-sm" style="flex:1" @click="sendReminder('再等几年也行...不着急...真的...')" :disabled="state.all_confirmed">狠狠催！</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revealed -->
+          <div v-if="state.round_phase === 'revealed'" class="admin-section">
+            <div class="card">
+              <div class="card-header">本轮结算完成</div>
+              <div v-if="lastRoundResult" style="margin-top:8px">
+                <div v-for="(r,i) in lastRoundResult" :key="r.uid" class="result-item" :style="{'animation-delay':(i*50)+'ms'}">
+                  <div class="result-icon" :class="r.result">{{ r.result === 'win' ? '+' : r.result === 'eliminated' ? '!' : r.result === 'lose' ? '-' : '~' }}</div>
+                  <div class="result-name">{{ r.name }}</div>
+                  <div class="result-change" :class="r.change > 0 ? 'pos' : r.change < 0 ? 'neg' : ''">{{ r.change > 0 ? '+' : '' }}{{ r.change }}</div>
+                  <span v-if="r.all_in" class="result-tag">ALL IN</span>
+                </div>
+              </div>
+              <div class="admin-action-row mt-16">
+                <button class="btn btn-danger btn-sm" @click="sendAction('rollback')" :disabled="!state.can_rollback">回滚！</button>
+                <button class="btn btn-primary btn-sm" @click="sendAction('next_round')" v-if="state.current_round < state.total_rounds">下一轮！</button>
+                <button class="btn btn-secondary btn-sm" @click="sendAction('end_game')">结束！</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Player List -->
+          <div class="card admin-section">
+            <div class="card-header">玩家列表 ({{ state.active_count }} / {{ Object.keys(state.players).length }})</div>
+            <div v-for="(p,i) in sortedPlayers" :key="p.uid" class="lb-item" :style="{'animation-delay':(i*40)+'ms'}">
+              <div class="lb-rank" :class="{top:i<3}">{{ i+1 }}</div>
+              <div class="lb-name" :class="{eliminated:p.eliminated}">{{ p.name }}<span class="lb-uid">@{{ p.uid }}</span></div>
+              <span v-if="p.choice==='left'" class="lb-choice left">L</span>
+              <span v-else-if="p.choice==='right'" class="lb-choice right">R</span>
+              <span v-else-if="p.choice==='watch'" class="lb-choice watch">-</span>
+              <span v-else-if="state.round_phase==='voting'" class="lb-choice watch">?</span>
+              <span v-if="p.all_in" class="lb-tag allin">ALL IN</span>
+              <span v-if="p.confirmed" class="lb-tag confirmed">OK</span>
+              <div class="lb-score" :class="{eliminated:p.eliminated}">{{ p.score }}</div>
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="card admin-section" v-if="state.history.length">
+            <div class="card-header">历史记录</div>
+            <div v-for="h in [...state.history].reverse()" :key="h.round" class="history-item">
+              <div class="history-round">第 {{ h.round }} 轮 / 积分 {{ h.stake }}</div>
+              <div class="history-answer" :class="h.answer">{{ h.answer === 'left' ? 'LEFT' : 'RIGHT' }}</div>
+            </div>
+          </div>
+
+          <div class="admin-section">
+            <button class="btn btn-danger" @click="sendAction('end_game')">结束游戏！</button>
+          </div>
+        </template>
+      </template>
+
+      <!-- ── Player Section (always visible) ── -->
+      <template v-if="state.game_active">
+        <div class="round-info" v-if="!isAdmin || !showAdmin">
+          <div class="round-number">第 <strong>{{ state.current_round }}</strong> / {{ state.total_rounds }} 轮</div>
+          <div v-if="state.round_stake > 0" class="round-stake"><span>积分</span>{{ state.round_stake }}</div>
+          <div v-if="state.round_phase === 'voting' && localTimerRemaining > 0" class="timer" :class="{warning:timerDisplay.warning,danger:timerDisplay.danger}">{{ timerDisplay.text }}</div>
+        </div>
+
+        <!-- Waiting -->
+        <div v-if="state.round_phase === 'waiting'" class="empty-state" style="padding:32px 20px">
+          <div class="icon">&#9203;</div>
+          <div class="title">等待设定积分</div>
+          <div class="desc">管理员正在设定本轮积分...</div>
+        </div>
+
+        <!-- Voting -->
+        <template v-if="state.round_phase === 'voting'">
+          <div class="choices">
+            <div class="choice choice-left" :class="{selected:myChoice==='left',disabled:myEliminated||myConfirmed,'all-in-active':allIn&&myChoice==='left'}" @click="vote('left')">
+              <span class="choice-icon">&#9664;</span><span class="choice-label">LEFT</span>
+            </div>
+            <div class="choice choice-right" :class="{selected:myChoice==='right',disabled:myEliminated||myConfirmed,'all-in-active':allIn&&myChoice==='right'}" @click="vote('right')">
+              <span class="choice-icon">&#9654;</span><span class="choice-label">RIGHT</span>
+            </div>
+          </div>
+          <div class="watch-btn">
+            <button class="btn" :class="{selected:myChoice==='watch'}" @click="vote('watch')" :disabled="myEliminated || myConfirmed">
+              {{ myChoice === 'watch' ? '已选择观望' : '观望' }}
+            </button>
+          </div>
+          <!-- Forced ALL IN -->
+          <div v-if="forcedAllIn && myChoice && myChoice !== 'watch'" class="all-in-row" style="border-color:rgba(255,149,0,.4)">
+            <div><div class="label">ALL IN (强制)</div><div class="desc">积分不足，投入全部，胜利翻倍，失败淘汰</div></div>
+            <div class="toggle on" style="cursor:default"><div class="knob"></div></div>
+          </div>
+          <!-- Voluntary ALL IN -->
+          <div v-else-if="canVoluntaryAllIn && myChoice && myChoice !== 'watch' && !myConfirmed" class="all-in-row">
+            <div><div class="label">ALL IN</div><div class="desc">投入全部，胜利翻倍，失败淘汰</div></div>
+            <div class="toggle" :class="{on:allIn}" @click="allIn=!allIn;submitVote()"><div class="knob"></div></div>
+          </div>
+          <!-- Confirm -->
+          <div style="margin-top:20px" v-if="myChoice && !myConfirmed && !myEliminated">
+            <button class="btn btn-primary" @click="confirmVote" style="font-size:17px;padding:16px">确定！</button>
+          </div>
+          <div v-if="myConfirmed" style="margin-top:16px;text-align:center;padding:14px;border-radius:var(--radius-sm);background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);font-size:14px;font-weight:600">
+            已确认选择，无法更改
+          </div>
+        </template>
+
+        <!-- Revealed -->
+        <template v-if="state.round_phase === 'revealed'">
+          <div class="card mt-24">
+            <div class="card-header">本轮答案</div>
+            <div style="font-size:24px;font-weight:700">
+              <span :style="{color: state.correct_answer==='left'?'var(--red)':'var(--green)'}">{{ state.correct_answer === 'left' ? 'LEFT' : 'RIGHT' }}</span>
+            </div>
+          </div>
+          <div class="card mt-16" v-if="lastRoundResult">
+            <div class="card-header">结算结果</div>
+            <div v-for="(r,i) in lastRoundResult" :key="r.uid" class="result-item" :style="{'animation-delay':(i*50)+'ms'}">
+              <div class="result-icon" :class="r.result">{{ r.result === 'win' ? '+' : r.result === 'eliminated' ? '!' : r.result === 'lose' ? '-' : '~' }}</div>
+              <div class="result-name">{{ r.name }}</div>
+              <div class="result-change" :class="r.change > 0 ? 'pos' : r.change < 0 ? 'neg' : ''">{{ r.change > 0 ? '+' : '' }}{{ r.change }}</div>
+              <span v-if="r.all_in" class="result-tag">ALL IN</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- My Score -->
+        <div class="my-score">
+          <div class="label">{{ myEliminated ? '已淘汰' : '我的积分' }}</div>
+          <div class="value" :style="{opacity: myEliminated ? .4 : 1}">{{ myScore }}</div>
+          <div v-if="myLastChange !== 0 && state.round_phase === 'revealed'" class="change" :class="myLastChange > 0 ? 'positive' : 'negative'">
+            {{ myLastChange > 0 ? '+' : '' }}{{ myLastChange }}
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="card" style="margin-top:24px" v-if="sortedPlayers.length">
+          <div class="card-header">排行榜</div>
+          <div v-for="(p,i) in sortedPlayers" :key="p.uid" class="lb-item" :style="{'animation-delay':(i*40)+'ms'}">
+            <div class="lb-rank" :class="{top:i<3}">{{ i+1 }}</div>
+            <div class="lb-name" :class="{eliminated:p.eliminated}">{{ p.name }}<span class="lb-uid">@{{ p.uid }}</span></div>
+            <span v-if="p.choice==='left'" class="lb-choice left">L</span>
+            <span v-else-if="p.choice==='right'" class="lb-choice right">R</span>
+            <span v-else-if="p.choice==='watch'" class="lb-choice watch">-</span>
+            <span v-if="p.all_in" class="lb-tag allin">ALL IN</span>
+            <span v-if="p.confirmed" class="lb-tag confirmed">OK</span>
+            <div class="lb-score" :class="{eliminated:p.eliminated}">{{ p.score }}</div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Not started -->
+      <div v-if="!state.game_active" class="empty-state">
+        <div class="icon">&#9711;</div>
+        <div class="title">等待游戏开始</div>
+        <div class="desc">管理员尚未开始游戏</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text3)">你的ID: {{ userId }}</div>
+      </div>
+    </div>
+  </template>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const {createApp,ref,reactive,computed,onMounted,onUnmounted,watch} = Vue;
+
+createApp({
+  setup(){
+    const joined = ref(false);
+    const isAdmin = ref(false);
+    const showAdmin = ref(false);
+    const nameInput = ref('');
+    const uidInput = ref('');
+    const userId = ref(null);
+    const ws = ref(null);
+    const toast = ref('');
+    const allIn = ref(false);
+    const myConfirmed = ref(false);
+    const reminderBanner = ref('');
+    const adminPassword = ref('');
+    const stakeInput = ref(null);
+    const pendingAnswer = ref(null);
+    const isDark = ref(false);
+    const reconnecting = ref(false);
+    const serverVersion = ref(0);
+    const localTimerRemaining = ref(0);
+
+    const state = reactive({
+      version:0, game_active:false, current_round:0, total_rounds:10,
+      round_stake:0, round_phase:'idle', correct_answer:null, can_rollback:false,
+      all_confirmed:false, timer_remaining:0, timer_expired:false,
+      players:{}, history:[], voted_count:0, active_count:0
+    });
+
+    let toastTimer=null, reconnectTimer=null, heartbeatTimer=null, localTimerInterval=null;
+
+    const UID_RE = /^[A-Za-z0-9_-]{2,16}$/;
+    const canJoin = computed(()=> uidInput.value.trim() && UID_RE.test(uidInput.value.trim()) && nameInput.value.trim());
+
+    function initTheme(){const s=localStorage.getItem('game-theme');if(s){isDark.value=s==='dark'}else{isDark.value=window.matchMedia('(prefers-color-scheme:dark)').matches}applyTheme()}
+    function applyTheme(){document.documentElement.setAttribute('data-theme',isDark.value?'dark':'light')}
+    function toggleTheme(){isDark.value=!isDark.value;localStorage.setItem('game-theme',isDark.value?'dark':'light');applyTheme()}
+
+    const myData = computed(()=> userId.value && state.players[userId.value] ? state.players[userId.value] : null);
+    const myScore = computed(()=> myData.value ? myData.value.score : 0);
+    const myChoice = computed(()=> myData.value ? myData.value.choice : null);
+    const myEliminated = computed(()=> myData.value ? myData.value.eliminated : false);
+    const forcedAllIn = computed(()=>{if(!myData.value||myEliminated.value)return false;return myScore.value>0&&myScore.value<state.round_stake});
+    const canVoluntaryAllIn = computed(()=>{if(!myData.value||myEliminated.value)return false;if(myScore.value<=0)return false;if(state.current_round<6)return false;return myScore.value>=state.round_stake});
+    const phaseLabel = computed(()=>({idle:'未开始',waiting:'等待中',voting:'投票中',revealed:'已揭晓'}[state.round_phase]||''));
+    const phaseBadge = computed(()=>({idle:'badge-idle',waiting:'badge-waiting',voting:'badge-voting',revealed:'badge-revealed'}[state.round_phase]||'badge-idle'));
+    const sortedPlayers = computed(()=>{const l=Object.entries(state.players).map(([uid,p])=>({...p,uid}));l.sort((a,b)=>b.score-a.score);return l});
+    const lastRoundResult = computed(()=>state.history.length?state.history[state.history.length-1].results:null);
+    const myLastChange = computed(()=>{if(!lastRoundResult.value||!userId.value)return 0;const r=lastRoundResult.value.find(x=>x.uid===userId.value);return r?r.change:0});
+    const timerDisplay = computed(()=>{const s=localTimerRemaining.value;if(s<=0)return{text:'00:00',warning:false,danger:false};const m=Math.floor(s/60),sec=s%60;return{text:`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`,warning:s<=60&&s>30,danger:s<=30}});
+
+    // ── WebSocket ──
+    function connect(){
+      const proto = location.protocol==='https:'?'wss':'ws';
+      ws.value = new WebSocket(`${proto}://${location.host}/ws`);
+      ws.value.onopen = ()=>{
+        reconnecting.value = false;
+        if(joined.value) return;
+        const saved = localStorage.getItem('game-uid');
+        if(saved){
+          const savedPwd = localStorage.getItem('game-admin-pwd')||'';
+          ws.value.send(JSON.stringify({action:'reconnect',user_id:saved,admin_password:savedPwd}));
+        }
+      };
+      ws.value.onmessage = (e)=>{
+        const msg = JSON.parse(e.data);
+        if(msg.type==='joined'){
+          userId.value=msg.user_id; joined.value=true; isAdmin.value=msg.is_admin||false;
+          localStorage.setItem('game-uid',msg.user_id);
+          if(isAdmin.value) localStorage.setItem('game-admin-pwd',adminPassword.value);
+          applyState(msg.data); reconnecting.value=false;
+        } else if(msg.type==='reconnected'){
+          userId.value=msg.user_id; joined.value=true; isAdmin.value=msg.is_admin||false;
+          localStorage.setItem('game-uid',msg.user_id);
+          applyState(msg.data); reconnecting.value=false;
+        } else if(msg.type==='admin_unlocked'){
+          isAdmin.value=true;
+          localStorage.setItem('game-admin-pwd',adminPassword.value);
+        } else if(msg.type==='state'){
+          applyState(msg.data);
+        } else if(msg.type==='error'){
+          showToast(msg.message);
+          if(!joined.value) localStorage.removeItem('game-uid');
+        } else if(msg.type==='reminder'){
+          reminderBanner.value=msg.message;
+          setTimeout(()=>{reminderBanner.value=''},8000);
+        } else if(msg.type==='info'){
+          showToast(msg.message);
+        }
+      };
+      ws.value.onclose = ()=>{ reconnecting.value=true; reconnectTimer=setTimeout(connect,2000) };
+      ws.value.onerror = ()=>{ ws.value.close() };
+    }
+
+    function applyState(data){
+      if(data.version!==undefined && data.version<=serverVersion.value) return;
+      if(data.version!==undefined) serverVersion.value=data.version;
+      // Sync timer from server (only accept non-zero or phase change)
+      if(data.timer_remaining !== undefined && data.round_phase === 'voting'){
+        // Only update if server value is significantly different (avoid overwriting local countdown)
+        if(Math.abs(data.timer_remaining - localTimerRemaining.value) > 3){
+          localTimerRemaining.value = data.timer_remaining;
+        }
+      } else if(data.round_phase !== 'voting'){
+        localTimerRemaining.value = 0;
+      }
+      Object.assign(state,data);
+      if(userId.value && data.players && data.players[userId.value]){
+        myConfirmed.value = data.players[userId.value].confirmed||false;
+      }
+    }
+
+    function sendAction(action,data={}){
+      if(ws.value && ws.value.readyState===WebSocket.OPEN)
+        ws.value.send(JSON.stringify({action,...data}));
+    }
+
+    // ── Actions ──
+    function joinGame(){
+      if(!canJoin.value) return;
+      if(ws.value && ws.value.readyState===WebSocket.OPEN)
+        ws.value.send(JSON.stringify({action:'join',name:nameInput.value.trim(),user_id:uidInput.value.trim(),admin_password:adminPassword.value}));
+    }
+
+    function unlockAdmin(){
+      const pwd = prompt('输入管理员密码');
+      if(pwd===null) return;
+      adminPassword.value = pwd;
+      sendAction('unlock_admin',{password:pwd});
+    }
+
+    function vote(choice){
+      if(myEliminated.value||state.round_phase!=='voting') return;
+      if(choice!=='watch'&&choice!=='left'&&choice!=='right') return;
+      if(choice==='watch') allIn.value=false;
+      const effectiveAllIn = choice!=='watch' && forcedAllIn.value ? true : allIn.value;
+      sendAction('vote',{choice,all_in:effectiveAllIn});
+    }
+
+    function submitVote(){
+      if(myChoice.value && myChoice.value!=='watch'){
+        const effectiveAllIn = forcedAllIn.value ? true : allIn.value;
+        sendAction('vote',{choice:myChoice.value,all_in:effectiveAllIn});
+      }
+    }
+
+    function confirmVote(){ sendAction('confirm_vote') }
+
+    function setStake(){
+      if(!stakeInput.value||stakeInput.value<=0) return;
+      sendAction('set_stake',{stake:stakeInput.value});
+      stakeInput.value=null;
+    }
+
+    function confirmAnswer(){
+      if(!pendingAnswer.value) return;
+      sendAction('set_answer',{answer:pendingAnswer.value});
+      pendingAnswer.value=null;
+    }
+
+    function forceConfirmAnswer(){
+      if(!pendingAnswer.value) return;
+      if(confirm('还有玩家未确认选择！未选择者将按观望处理。确定要公布答案吗？')){
+        sendAction('set_answer',{answer:pendingAnswer.value});
+        pendingAnswer.value=null;
+      }
+    }
+
+    function sendReminder(text){ sendAction('send_reminder',{text}) }
+
+    function showToast(msg){
+      toast.value=msg; clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>{toast.value=''},3000);
+    }
+
+    onMounted(()=>{
+      initTheme(); connect();
+      heartbeatTimer=setInterval(()=>{if(ws.value&&ws.value.readyState===WebSocket.OPEN)sendAction('sync')},15000);
+      localTimerInterval=setInterval(()=>{if(state.round_phase==='voting'&&localTimerRemaining.value>0)localTimerRemaining.value--},1000);
+    });
+    onUnmounted(()=>{
+      clearTimeout(reconnectTimer); clearInterval(heartbeatTimer); clearInterval(localTimerInterval);
+      if(ws.value) ws.value.close();
+    });
+
+    watch(()=>state.round_phase,(v)=>{
+      if(v==='voting'){pendingAnswer.value=null;myConfirmed.value=false;allIn.value=false}
+      if(v==='waiting'||v==='idle'){allIn.value=false;myConfirmed.value=false;stakeInput.value=null;pendingAnswer.value=null}
+    });
+
+    return {
+      joined,isAdmin,showAdmin,nameInput,uidInput,userId,toast,allIn,myConfirmed,reminderBanner,
+      adminPassword,stakeInput,pendingAnswer,isDark,state,reconnecting,canJoin,localTimerRemaining,
+      myData,myScore,myChoice,myEliminated,forcedAllIn,canVoluntaryAllIn,
+      timerDisplay,phaseLabel,phaseBadge,sortedPlayers,lastRoundResult,myLastChange,
+      toggleTheme,joinGame,unlockAdmin,vote,submitVote,confirmVote,sendReminder,
+      forceConfirmAnswer,setStake,confirmAnswer,sendAction
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
