@@ -286,9 +286,11 @@ class GameState:
 
     def to_dict(self, *, for_player: str | None = None, connected_uids: set | None = None) -> dict:
         players = {}
+        elapsed = time.time() - self.timer_start if self.timer_start and self.round_phase == "voting" else 0
+        remaining = max(0, self.timer_duration - elapsed) if self.round_phase == "voting" else 0
         for uid, p in self.players.items():
-            # Hide other players' choices during voting phase (aligned with official mode)
-            if for_player and uid != for_player and self.round_phase == "voting":
+            # Hide other players' choices in last 7 seconds of voting (official mode)
+            if for_player and uid != for_player and self.round_phase == "voting" and remaining <= 7:
                 show_choice = None
                 show_confirmed = p["choice"] is not None
             else:
@@ -304,8 +306,6 @@ class GameState:
         active = [p for p in self.players.values() if not p["eliminated"]]
         confirmed_list = [p for p in active if p.get("confirmed")]
         all_confirmed_val = len(active) > 0 and len(confirmed_list) == len(active)
-        elapsed = time.time() - self.timer_start if self.timer_start and self.round_phase == "voting" else 0
-        remaining = max(0, self.timer_duration - elapsed) if self.round_phase == "voting" else 0
         return {
             "version": self._version,
             "game_active": self.game_active,
