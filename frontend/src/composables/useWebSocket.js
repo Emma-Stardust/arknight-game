@@ -269,7 +269,7 @@ export function useWebSocket() {
 
   function forceConfirmAnswer() {
     if (!pendingAnswer.value) return
-    if (confirm('还有玩家未确认选择！未选择者将按观望处理。确定要公布答案吗？')) {
+    if (confirm('还有玩家未确认选择！已选但未确认的玩家将按其选择结算，未选择的玩家按观望处理。确定要公布答案吗？')) {
       sendAction('set_answer', { answer: pendingAnswer.value })
       pendingAnswer.value = null
     }
