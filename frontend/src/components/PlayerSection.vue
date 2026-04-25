@@ -17,6 +17,11 @@
       </div>
     </div>
 
+    <!-- 7-second countdown overlay -->
+    <div v-if="timerDisplay.countdown && state.round_phase === 'voting'" class="countdown-overlay">
+      <span class="countdown-number">{{ localTimerRemaining }}</span>
+    </div>
+
     <!-- R6+ ALL IN tip -->
     <div
       v-if="state.round_phase === 'voting' && state.current_round >= 6"

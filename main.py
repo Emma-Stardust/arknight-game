@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
-TIMER_DURATION = int(os.environ.get("TIMER_DURATION", "60"))
+TIMER_DURATION = int(os.environ.get("TIMER_DURATION", "20"))
 
 # Hardcoded round stakes
 ROUND_STAKES = [2000, 2400, 3000, 4000, 5500, 8000, 12000, 18000, 30000, 50000]
@@ -287,11 +287,18 @@ class GameState:
     def to_dict(self, *, for_player: str | None = None, connected_uids: set | None = None) -> dict:
         players = {}
         for uid, p in self.players.items():
+            # Hide other players' choices during voting phase (aligned with official mode)
+            if for_player and uid != for_player and self.round_phase == "voting":
+                show_choice = None
+                show_confirmed = p["choice"] is not None
+            else:
+                show_choice = p["choice"]
+                show_confirmed = p.get("confirmed", False)
             d = {"name": p["name"], "score": p["score"],
                  "eliminated": p["eliminated"], "all_in": p.get("all_in", False),
                  "can_all_in": self.can_all_in(uid),
-                 "confirmed": p.get("confirmed", False),
-                 "choice": p["choice"],
+                 "confirmed": show_confirmed,
+                 "choice": show_choice,
                  "connected": uid in connected_uids if connected_uids is not None else True}
             players[uid] = d
         active = [p for p in self.players.values() if not p["eliminated"]]

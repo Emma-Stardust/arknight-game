@@ -88,13 +88,14 @@ export function useWebSocket() {
   })
   const timerDisplay = computed(() => {
     const s = localTimerRemaining.value
-    if (s <= 0) return { text: '00:00', warning: false, danger: false }
+    if (s <= 0) return { text: '00:00', warning: false, danger: false, countdown: false }
     const m = Math.floor(s / 60)
     const sec = s % 60
     return {
       text: `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
-      warning: s <= 60 && s > 30,
-      danger: s <= 30,
+      warning: s <= 15 && s > 7,
+      danger: s <= 7,
+      countdown: s <= 7,
     }
   })
   const myTitles = computed(() => {
