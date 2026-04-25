@@ -367,7 +367,11 @@ async def timer_loop():
     while True:
         await asyncio.sleep(1)
         if game.round_phase == "voting" and not game.timer_expired:
+            async with game._lock:
+                game._bump()
             if game.check_timer():
+                await broadcast()
+            else:
                 await broadcast()
 
 
