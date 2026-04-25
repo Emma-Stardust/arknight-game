@@ -214,8 +214,6 @@
 </template>
 
 <script setup>
-import { nextTick } from 'vue'
-
 defineProps({
   state: Object,
   isAdmin: Boolean,
@@ -235,19 +233,12 @@ defineProps({
   myLastChange: Number,
   formatScore: Function,
   vote: Function,
-  submitVote: Function,
   toggleAllInAndResubmit: Function,
   confirmVote: Function,
 })
 
-const emit = defineEmits(['update:allIn', 'toggleAllIn'])
-
 function handleToggleAllIn() {
-  // Use the atomic toggle+resubmit from parent to avoid stale allIn value
-  if (props.toggleAllInAndResubmit) {
-    props.toggleAllInAndResubmit()
-  } else {
-    emit('toggleAllIn')
-  }
+  // Atomic toggle+resubmit from parent to avoid stale allIn value
+  props.toggleAllInAndResubmit?.()
 }
 </script>

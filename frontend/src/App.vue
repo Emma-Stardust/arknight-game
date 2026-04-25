@@ -99,10 +99,8 @@
           :my-last-change="myLastChange"
           :format-score="formatScore"
           :vote="vote"
-          :submit-vote="submitVote"
           :toggle-all-in-and-resubmit="toggleAllInAndResubmit"
           :confirm-vote="confirmVote"
-          @toggle-all-in="allIn = !allIn"
         />
       </div>
     </template>
@@ -149,7 +147,6 @@ const {
   joinGame,
   unlockAdmin,
   vote,
-  submitVote,
   toggleAllInAndResubmit,
   confirmVote,
   confirmAnswer,
