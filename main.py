@@ -10,6 +10,7 @@ import time
 import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -297,9 +298,10 @@ async def broadcast():
 # ── HTTP ────────────────────────────────────────────────────
 
 @app.get("/")
-@app.get("/admin")
 async def serve_index():
     return FileResponse("index.html")
+
+app.mount("/", StaticFiles(directory="."), name="static")
 
 
 # ── Timer background task ───────────────────────────────────
