@@ -345,7 +345,8 @@ async def serve_index():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-app.mount("/", StaticFiles(directory=STATIC_DIR), name="static")
+# Mount static files LAST so WebSocket route at /ws is matched first
+app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
 
 
 async def timer_loop():
