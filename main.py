@@ -348,21 +348,22 @@ async def broadcast():
 
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "dist")
-if not os.path.isdir(STATIC_DIR):
-    STATIC_DIR = os.path.dirname(__file__)
+HAS_FRONTEND = os.path.isdir(STATIC_DIR) and os.path.isfile(os.path.join(STATIC_DIR, "index.html"))
 
+if HAS_FRONTEND:
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
-@app.get("/")
-async def serve_index():
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+    @app.get("/favicon.ico")
+    async def serve_favicon():
+        return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"))
 
-@app.get("/favicon.ico")
-async def serve_favicon():
-    return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"))
-
-
-# Mount static files LAST so WebSocket route at /ws is matched first
-app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
+    # Mount static files LAST so WebSocket route at /ws is matched first
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
+else:
+    print("[WARN] dist/ not found. Run `cd frontend && npm install && npm run build` first.")
+    print("[WARN] Backend API (WebSocket on /ws) still works without frontend.")
 
 
 async def timer_loop():

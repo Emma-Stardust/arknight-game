@@ -2,7 +2,7 @@
 
 由于《明日方舟》争锋频道：青草城不支持官服和B服联机，所以做了这么一个计分板。
 
-具体使用推荐一人开屏幕共享，进入自娱自乐模式，然后持续观望。玩家则在网页计分板上选择。管理员在后台根据对局填写结果和每轮所需积分。
+具体使用推荐一人开屏幕共享，进入自娱自乐模式，然后持续观望。玩家则在网页计分板上选择。管理员在后台根据对局填写结果。
 
 ## 功能
 
@@ -11,7 +11,7 @@
 - 20秒倒计时（可通过 `TIMER_DURATION` 环境变量配置），超时未选择自动观望
 - 最后7秒隐藏其他玩家选择，倒计时变红跳动提醒
 - ALL IN 机制：第6轮起可自愿 ALL IN，积分不足时强制 ALL IN
-- 管理员控制面板：设定积分、公布答案、回滚、催促
+- 管理员控制面板：公布答案、回滚、催促
 - Apple Design 风格，支持深色/浅色模式
 - 移动端适配
 
@@ -40,17 +40,23 @@ arknight-game/
 │   ├── src/
 │   │   ├── App.vue              # 根组件
 │   │   ├── main.js              # 入口
-│   │   ├── style.css            # 全局样式
+│   │   ├── styles/              # 全局样式（按功能拆分）
+│   │   │   ├── variables.css    # CSS 变量 + 暗色主题
+│   │   │   ├── base.css         # reset、布局、顶栏
+│   │   │   ├── ui.css           # 按钮、卡片、徽章
+│   │   │   ├── game.css         # 回合信息、排行榜、结果
+│   │   │   └── animations.css   # @keyframes
 │   │   ├── composables/
 │   │   │   └── useWebSocket.js  # WebSocket 状态管理
 │   │   └── components/
 │   │       ├── JoinScreen.vue   # 加入页面
 │   │       ├── AdminPanel.vue   # 管理员面板
-│   │       └── PlayerSection.vue # 玩家区域
+│   │       ├── PlayerSection.vue # 玩家区域
+│   │       └── TitlesScreen.vue # 结算页面
 │   ├── index.html
 │   ├── vite.config.js
 │   └── package.json
-└── dist/                # 构建产物 (npm run build 后生成)
+└── dist/                # 构建产物（需手动构建，不包含在仓库中）
 ```
 
 ## 安装
@@ -58,39 +64,26 @@ arknight-game/
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/Stardust-minus/arknight-game.git
+git clone https://github.com/Emma-Stardust/arknight-game.git
 cd arknight-game
 ```
 
-### 2. 安装依赖
+### 2. 安装后端依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 设置环境变量
-
-```bash
-export ADMIN_PASSWORD="你的密码"    # 管理员密码，默认 Stardust
-export TIMER_DURATION=20            # 每轮倒计时（秒），默认 20 秒
-```
-
-### 4. 前端开发（可选）
-
-如果需要修改前端，进入 frontend 目录：
+### 3. 构建前端
 
 ```bash
 cd frontend
 npm install
-npm run dev      # 开发服务器，自动代理后端 WebSocket
-npm run build    # 构建到 ../dist/ 目录
+npm run build    # 构建到 ../dist/
+cd ..
 ```
 
-开发时前端运行在 `http://localhost:5173`，自动代理 `/ws` 到后端。
-
-> 不需要改前端？直接运行后端即可，已内置构建好的页面。
-
-### 5. 启动服务
+### 4. 启动服务
 
 ```bash
 python main.py
@@ -103,6 +96,13 @@ python main.py
 ```bash
 python main.py --port 9000
 ```
+
+## 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `ADMIN_PASSWORD` | `Stardust` | 管理员密码 |
+| `TIMER_DURATION` | `20` | 每轮倒计时（秒） |
 
 ## 使用方法
 
@@ -119,7 +119,7 @@ python main.py --port 9000
 
 1. 加入时填入管理员密码，或加入后点右上角齿轮解锁
 2. 点击「开始新游戏！」
-3. 每轮设定积分 → 等待玩家投票 → 选择正确答案 → 结算
+3. 等待玩家投票 → 选择正确答案 → 结算
 4. 可以催促未确认的玩家（催一下 / 狠狠催）
 5. 所有玩家确认后公布答案，也可以提前公布（未选择者按观望处理）
 6. 答案选错可以「回滚！」回到投票阶段
@@ -131,7 +131,7 @@ python main.py --port 9000
 ## 技术栈
 
 - **后端**：Python + FastAPI + WebSocket
-- **前端**：Vue 3 + Vite（SFC 单文件组件）
+- **前端**：Vue 3 + Vite（Composition API + SFC）
 - **通信**：WebSocket 实时双向同步，版本号强一致性，断线自动重连
 - **构建**：Vite 打包到 `dist/`，后端自动服务静态文件
 
