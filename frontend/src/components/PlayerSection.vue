@@ -83,8 +83,7 @@
           <div class="desc">投入全部，胜利翻倍，失败淘汰</div>
         </div>
         <div class="toggle" :class="{ on: allIn }" @click="handleToggleAllIn">
-          <div class="knob"></div>
-        </div>
+          <div class="knob"></div></div>
       </div>
       <!-- Confirm -->
       <div style="margin-top: 20px" v-if="myChoice && !myConfirmed && !myEliminated">
@@ -242,3 +241,50 @@ function handleToggleAllIn() {
   props.toggleAllInAndResubmit?.()
 }
 </script>
+
+<style scoped>
+.all-in-tip { text-align: center; margin-top: 12px; padding: 10px 16px; border-radius: var(--radius-sm); background: var(--orange-bg); border: 1px solid rgba(255,149,0,.25); color: var(--orange); font-size: 14px; font-weight: 600; animation: slideIn .3s ease }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px }
+.choice { position: relative; border-radius: var(--radius); padding: 28px 16px; text-align: center; cursor: pointer; border: 2px solid var(--border); background: var(--bg-card); transition: all .25s; user-select: none; -webkit-user-select: none; overflow: hidden }
+.choice:active { transform: scale(.96) }
+.choice::after { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none }
+.choice-left::after { background: radial-gradient(circle at center,rgba(255,59,48,.12) 0%,transparent 70%) }
+.choice-right::after { background: radial-gradient(circle at center,rgba(52,199,89,.12) 0%,transparent 70%) }
+.choice-left.selected::after, .choice-left:hover::after { opacity: 1 }
+.choice-right.selected::after, .choice-right:hover::after { opacity: 1 }
+.choice .choice-icon { font-size: 32px; font-weight: 800; display: block; margin-bottom: 6px; letter-spacing: -1px; position: relative; z-index: 1 }
+.choice .choice-label { font-size: 14px; font-weight: 600; color: var(--text2); position: relative; z-index: 1 }
+.choice-left .choice-icon { color: var(--red) }
+.choice-right .choice-icon { color: var(--green) }
+.choice-left:hover, .choice-left.selected { border-color: var(--red); background: var(--red-bg) }
+.choice-left.selected .choice-label { color: var(--red) }
+.choice-right:hover, .choice-right.selected { border-color: var(--green); background: var(--green-bg) }
+.choice-right.selected .choice-label { color: var(--green) }
+.choice.disabled { opacity: .4; pointer-events: none }
+.choice.all-in-active { border-color: var(--orange) !important; box-shadow: 0 0 0 3px var(--orange-bg); animation: allInGlow 1.5s ease-in-out infinite alternate }
+.watch-btn { margin-top: 16px }
+.watch-btn .btn { padding: 12px; font-size: 14px; color: var(--text2); background: var(--bg-card); border: 1.5px solid var(--border) }
+.watch-btn .btn.selected { background: var(--accent-light); color: var(--accent); border-color: var(--accent) }
+.all-in-row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--orange-bg); border: 1px solid rgba(255,149,0,.2); animation: slideIn .3s ease }
+.all-in-row .label { font-size: 14px; font-weight: 600; color: var(--orange) }
+.all-in-row .desc { font-size: 11px; color: var(--text2); margin-top: 2px }
+.toggle { position: relative; width: 51px; height: 31px; border-radius: 16px; background: var(--text3); cursor: pointer; transition: background .2s; flex-shrink: 0 }
+.toggle.on { background: var(--orange) }
+.toggle .knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #FFF; box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: transform .2s }
+.toggle.on .knob { transform: translateX(20px) }
+.my-score { margin-top: 24px; padding: 20px; border-radius: var(--radius); background: var(--bg-card); box-shadow: var(--shadow); border: .5px solid var(--border); text-align: center; position: relative; overflow: hidden }
+.my-score::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,var(--red),var(--arknights-gold),var(--green)) }
+.my-score .label { font-size: 13px; color: var(--text2); font-weight: 500 }
+.my-score .value { font-size: 40px; font-weight: 700; letter-spacing: -1px; margin-top: 2px; transition: all .3s }
+.my-score .change { font-size: 14px; font-weight: 600; margin-top: 4px; animation: changePop .4s cubic-bezier(.34,1.56,.64,1) }
+.my-score .change.positive { color: var(--green) }
+.my-score .change.negative { color: var(--red) }
+
+@media(max-width:380px){
+  .choices { gap: 10px }
+  .choice { padding: 20px 10px }
+  .choice .choice-icon { font-size: 26px }
+  .round-stake { font-size: 28px }
+  .my-score .value { font-size: 32px }
+}
+</style>

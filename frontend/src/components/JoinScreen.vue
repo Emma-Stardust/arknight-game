@@ -61,3 +61,18 @@ function doJoin() {
   props.joinGame(nameInput.value, uidInput.value)
 }
 </script>
+
+<style scoped>
+.join-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100dvh; padding: 32px 24px; text-align: center }
+.join-emblem { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg,#1A1A2E,#16213E); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.15); animation: emblemPulse 3s ease-in-out infinite }
+.join-emblem span { font-size: 32px; color: #D4A843; font-weight: 800 }
+.join-title { font-size: 24px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 2px }
+.join-sub { font-size: 16px; font-weight: 500; color: var(--arknights-gold); margin-bottom: 4px }
+.join-desc { color: var(--text2); font-size: 13px; margin-bottom: 28px }
+.input-group { width: 100%; max-width: 320px; margin-bottom: 12px }
+.input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); text-align: left; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .3px }
+.input-group input { width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 16px; outline: none; transition: border .2s }
+.input-group input:focus { border-color: var(--accent) }
+.input-group input::placeholder { color: var(--text3) }
+.input-group .hint { font-size: 11px; color: var(--text3); text-align: left; margin-top: 4px }
+</style>

@@ -1,0 +1,16 @@
+/* ── Keyframes ── */
+
+@keyframes bgDrift { 0% { transform: translate(0,0) rotate(0deg) } 100% { transform: translate(-3%,2%) rotate(2deg) } }
+@keyframes pf { 0% { bottom: -10px; opacity: 0; transform: translateX(0) } 10% { opacity: .3 } 90% { opacity: .3 } 100% { bottom: 110%; opacity: 0; transform: translateX(30px) } }
+@keyframes emblemPulse { 0%,100% { box-shadow: 0 4px 20px rgba(212,168,67,.15) } 50% { box-shadow: 0 4px 30px rgba(212,168,67,.3) } }
+@keyframes stakeAppear { from { opacity: 0; transform: scale(.8) translateY(8px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+@keyframes timerPulse { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
+@keyframes timerBounce { 0%,100% { transform: scale(1) } 50% { transform: scale(1.2) } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes changePop { from { opacity: 0; transform: scale(.7) } to { opacity: 1; transform: scale(1) } }
+@keyframes listIn { from { opacity: 0; transform: translateX(-8px) } }
+@keyframes iconPop { from { transform: scale(0) } to { transform: scale(1) } }
+@keyframes iconShake { 0%,100% { transform: rotate(0) } 25% { transform: rotate(-10deg) } 75% { transform: rotate(10deg) } }
+@keyframes allInGlow { from { box-shadow: 0 0 0 3px var(--orange-bg) } to { box-shadow: 0 0 12px 3px rgba(255,149,0,.25) } }
+@keyframes reminderSlide { from { transform: translateY(-100%) } to { transform: translateY(0) } }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px) } to { opacity: 1; transform: translateX(-50%) translateY(0) } }

@@ -202,3 +202,23 @@ defineProps({
 
 defineEmits(['update:pendingAnswer'])
 </script>
+
+<style scoped>
+.admin-section { margin-bottom: 16px }
+.admin-section .card { padding: 16px }
+.admin-votes { font-size: 14px; color: var(--text2); text-align: center; margin-top: 8px }
+.admin-votes strong { color: var(--accent) }
+.answer-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px }
+.answer-btn { padding: 14px; border-radius: var(--radius-sm); border: 2px solid var(--border); background: var(--bg-card); font-size: 16px; font-weight: 700; cursor: pointer; transition: all .2s; text-align: center }
+.answer-btn:active { transform: scale(.96) }
+.answer-btn.left-ans:hover, .answer-btn.left-ans.chosen { border-color: var(--red); background: var(--red-bg); color: var(--red) }
+.answer-btn.right-ans:hover, .answer-btn.right-ans.chosen { border-color: var(--green); background: var(--green-bg); color: var(--green) }
+.admin-action-row { display: flex; gap: 8px; margin-top: 10px }
+.admin-action-row .btn { flex: 1 }
+.history-item { padding: 10px 0; border-bottom: .5px solid var(--divider) }
+.history-item:last-child { border-bottom: none }
+.history-round { font-size: 13px; font-weight: 600; color: var(--text2) }
+.history-answer { font-size: 14px; font-weight: 600; margin-top: 2px }
+.history-answer.left { color: var(--red) }
+.history-answer.right { color: var(--green) }
+</style>

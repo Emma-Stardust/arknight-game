@@ -1,0 +1,26 @@
+/* ── CSS Custom Properties ── */
+
+:root {
+  --bg: #F2F2F7; --bg-card: #FFFFFF; --bg-card-hover: #F9F9FB;
+  --text: #1C1C1E; --text2: #8E8E93; --text3: #AEAEB2;
+  --accent: #007AFF; --accent-hover: #0056CC; --accent-light: rgba(0,122,255,.1);
+  --red: #FF3B30; --red-bg: rgba(255,59,48,.08); --red-border: rgba(255,59,48,.25);
+  --green: #34C759; --green-bg: rgba(52,199,89,.08); --green-border: rgba(52,199,89,.25);
+  --orange: #FF9500; --orange-bg: rgba(255,149,0,.1);
+  --border: rgba(60,60,67,.08); --divider: rgba(60,60,67,.12);
+  --shadow: 0 1px 8px rgba(0,0,0,.06); --shadow-lg: 0 4px 24px rgba(0,0,0,.1);
+  --glass: rgba(255,255,255,.72); --radius: 16px; --radius-sm: 12px; --radius-xs: 8px;
+  --arknights: #1A1A2E; --arknights-gold: #D4A843; --arknights-blue: #16213E;
+}
+
+[data-theme="dark"] {
+  --bg: #0A0A0F; --bg-card: #16161E; --bg-card-hover: #1E1E28;
+  --text: #E8E8ED; --text2: #8888A0; --text3: #555568;
+  --accent: #6C8EBF; --accent-hover: #8AADDF; --accent-light: rgba(108,142,191,.12);
+  --red: #FF453A; --red-bg: rgba(255,69,58,.12); --red-border: rgba(255,69,58,.3);
+  --green: #30D158; --green-bg: rgba(48,209,88,.12); --green-border: rgba(48,209,88,.3);
+  --orange: #FF9F0A; --orange-bg: rgba(255,159,10,.15);
+  --border: rgba(255,255,255,.06); --divider: rgba(255,255,255,.08);
+  --shadow: 0 1px 8px rgba(0,0,0,.3); --shadow-lg: 0 4px 24px rgba(0,0,0,.5);
+  --glass: rgba(10,10,15,.85);
+}

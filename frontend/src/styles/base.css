@@ -1,0 +1,38 @@
+/* ── Reset & Base ── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100% }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif; line-height: 1.5; overflow-x: hidden; transition: background .3s, color .3s; background: var(--bg); color: var(--text) }
+
+/* ── Background ── */
+
+.bg-pattern { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; overflow: hidden }
+.bg-pattern::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 20%,rgba(212,168,67,.06) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(108,142,191,.06) 0%,transparent 50%); animation: bgDrift 20s ease-in-out infinite alternate }
+.particle { position: fixed; width: 3px; height: 3px; border-radius: 50%; background: var(--arknights-gold); opacity: 0; pointer-events: none; z-index: 1 }
+.particle:nth-child(1) { left: 10%; animation: pf 8s 0s infinite }
+.particle:nth-child(2) { left: 25%; animation: pf 10s 1s infinite }
+.particle:nth-child(3) { left: 45%; animation: pf 7s 2s infinite }
+.particle:nth-child(4) { left: 65%; animation: pf 9s .5s infinite }
+.particle:nth-child(5) { left: 80%; animation: pf 11s 3s infinite }
+.particle:nth-child(6) { left: 90%; animation: pf 8s 1.5s infinite }
+
+/* ── Layout ── */
+
+.app-root { min-height: 100dvh; display: flex; flex-direction: column; position: relative; z-index: 2 }
+.page { flex: 1; padding: 20px; max-width: 480px; margin: 0 auto; width: 100% }
+
+/* ── Top Bar ── */
+
+.top-bar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); background: var(--glass); border-bottom: .5px solid var(--divider); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between }
+.top-bar h1 { font-size: 15px; font-weight: 700; letter-spacing: .3px }
+.top-bar-right { display: flex; align-items: center; gap: 8px }
+
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 16px }
+.icon-btn:active { transform: scale(.9) }
+.icon-btn-theme { background: var(--accent-light); color: var(--accent) }
+.icon-btn-admin { background: var(--orange-bg); color: var(--orange); position: relative }
+.icon-btn-admin.active { background: var(--orange); color: #FFF }
+
+/* ── Utility ── */
+
+.mt-8 { margin-top: 8px } .mt-12 { margin-top: 12px } .mt-16 { margin-top: 16px } .mt-24 { margin-top: 24px }

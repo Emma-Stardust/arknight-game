@@ -1,0 +1,66 @@
+/* ── Round Info ── */
+
+.round-info { text-align: center; padding: 20px 0 4px }
+.round-number { font-size: 14px; color: var(--text2); font-weight: 500 }
+.round-number strong { color: var(--text); font-weight: 700 }
+.round-stake { font-size: 36px; font-weight: 800; letter-spacing: -1.5px; margin-top: 4px; animation: stakeAppear .4s cubic-bezier(.34,1.56,.64,1) }
+.round-stake span { font-size: 14px; font-weight: 500; color: var(--text2); margin-right: 2px }
+.round-stake-mini { font-size: 16px; font-weight: 700; color: var(--arknights-gold); margin-top: 4px }
+
+/* ── Timer ── */
+
+.timer { margin-top: 10px; font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; transition: color .3s }
+.timer.warning { color: var(--orange); animation: timerPulse 1s ease-in-out infinite }
+.timer.danger { color: var(--red) }
+.timer.bounce { animation: timerBounce .6s ease-in-out infinite }
+
+/* ── Leaderboard ── */
+
+.lb-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: .5px solid var(--divider); animation: listIn .3s ease backwards }
+.lb-item:last-child { border-bottom: none }
+.lb-rank { width: 22px; font-size: 13px; font-weight: 700; color: var(--text3); text-align: center }
+.lb-rank.top { color: var(--arknights-gold); font-size: 15px }
+.lb-name { flex: 1; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lb-uid { font-size: 10px; color: var(--text3); margin-left: 2px }
+.lb-name.eliminated { text-decoration: line-through; color: var(--text3) }
+.lb-score { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 50px; text-align: right }
+.lb-score.eliminated { color: var(--text3) }
+.lb-choice { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 2px; transition: opacity .3s, transform .3s }
+.lb-choice.left { background: var(--red-bg); color: var(--red) }
+.lb-choice.right { background: var(--green-bg); color: var(--green) }
+.lb-choice.watch { background: var(--bg-card); color: var(--text3); border: 1px solid var(--border) }
+.lb-choice.hidden { color: var(--orange); opacity: .7 }
+.lb-tag { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 2px }
+.lb-tag.allin { background: var(--orange-bg); color: var(--orange) }
+.lb-tag.confirmed { background: var(--green-bg); color: var(--green); transition: opacity .3s, transform .3s }
+
+/* ── Transitions ── */
+
+.choice-fade-enter-active, .choice-fade-leave-active { transition: opacity .3s, transform .3s }
+.choice-fade-enter-from { opacity: 0; transform: scale(.8) }
+.choice-fade-leave-to { opacity: 0; transform: scale(.8) }
+
+/* ── Result Items ── */
+
+.result-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: .5px solid var(--divider); animation: listIn .3s ease backwards }
+.result-item:last-child { border-bottom: none }
+.result-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0 }
+.result-icon.win { background: var(--green-bg); color: var(--green); animation: iconPop .4s cubic-bezier(.34,1.56,.64,1) }
+.result-icon.lose { background: var(--red-bg); color: var(--red) }
+.result-icon.watch { background: var(--bg-card); color: var(--text3) }
+.result-icon.eliminated { background: var(--red-bg); color: var(--red); animation: iconShake .5s ease }
+.result-name { flex: 1; font-size: 14px; font-weight: 500 }
+.result-change { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums }
+.result-change.pos { color: var(--green) }
+.result-change.neg { color: var(--red) }
+.result-tag { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: var(--orange-bg); color: var(--orange); margin-left: 4px }
+
+/* ── Overlays ── */
+
+.reconnect-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 10px 16px; background: var(--orange); color: #FFF; text-align: center; font-size: 13px; font-weight: 600 }
+.reminder-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 20px; background: linear-gradient(135deg,var(--orange),#FF6B00); color: #FFF; text-align: center; font-size: 15px; font-weight: 600; box-shadow: 0 4px 16px rgba(255,149,0,.3); animation: reminderSlide .4s cubic-bezier(.34,1.56,.64,1); cursor: pointer }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 100; animation: toastIn .3s ease; max-width: 90vw; text-align: center }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text2) }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: .5 }
+.empty-state .title { font-size: 17px; font-weight: 600; margin-bottom: 4px }
+.empty-state .desc { font-size: 14px; color: var(--text3) }
