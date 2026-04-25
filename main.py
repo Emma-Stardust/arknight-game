@@ -11,11 +11,13 @@ import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-import os
 
 app = FastAPI()
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+
+# Hardcoded round stakes
+ROUND_STAKES = [2000, 2400, 3000, 4000, 5500, 8000, 12000, 18000, 30000, 50000]
 
 
 class GameState:
@@ -52,6 +54,7 @@ class GameState:
         self.timer_start = 0
         self.timer_duration = 300
         self.timer_expired = False
+        self.titles: dict = {}  # uid -> [title strings]
 
     def rollback(self) -> bool:
         if not self._prev_snapshot:
@@ -75,30 +78,24 @@ class GameState:
         self._bump()
         self.game_active = True
         self.current_round = 1
-        self.round_stake = 0
-        self.round_phase = "waiting"
+        self.round_stake = ROUND_STAKES[0]
+        self.round_phase = "voting"
         self.correct_answer = None
         self.history = []
         self._prev_snapshot = None
         self.timer_expired = False
+        self.timer_start = time.time()
+        self.titles = {}
         for p in self.players.values():
             p["score"] = 10000
             p["choice"] = None
             p["all_in"] = False
             p["eliminated"] = False
             p["confirmed"] = False
-
-    def set_stake(self, stake: int):
-        self._bump()
-        self.round_stake = stake
-        self.round_phase = "voting"
-        self._prev_snapshot = None
-        self.timer_start = time.time()
-        self.timer_expired = False
-        for p in self.players.values():
-            p["choice"] = None
-            p["all_in"] = False
-            p["confirmed"] = False
+            p["initial_score"] = 10000
+            p["max_score"] = 10000
+            p["wins"] = 0
+            p["forced_all_in_wins"] = 0
 
     def all_confirmed(self) -> bool:
         active = [p for p in self.players.values() if not p["eliminated"]]
@@ -121,10 +118,12 @@ class GameState:
                                 "choice": choice or "watch", "result": "watch", "change": 0})
                 continue
             if choice == answer:
+                p["wins"] = p.get("wins", 0) + 1
                 if p["all_in"]:
                     invested = p["score"]
                     change = invested
                     p["score"] += change
+                    p["forced_all_in_wins"] = p.get("forced_all_in_wins", 0) + 1
                     results.append({"uid": uid, "name": p["name"], "choice": choice,
                                     "result": "win", "change": change, "all_in": True})
                 else:
@@ -144,6 +143,9 @@ class GameState:
                     p["score"] = max(0, p["score"] - change)
                     results.append({"uid": uid, "name": p["name"], "choice": choice,
                                     "result": "lose", "change": -change, "all_in": False})
+            # Track max score
+            if p["score"] > p.get("max_score", 10000):
+                p["max_score"] = p["score"]
         self.history.append({"round": self.current_round, "stake": self.round_stake,
                              "answer": answer, "results": results})
         self._check_all_eliminated()
@@ -157,14 +159,16 @@ class GameState:
         self._bump()
         self._prev_snapshot = None
         if self.current_round >= self.total_rounds:
+            self._compute_titles()
             self.game_active = False
-            self.round_phase = "idle"
+            self.round_phase = "finished"
             return False
         self.current_round += 1
-        self.round_stake = 0
-        self.round_phase = "waiting"
+        self.round_stake = ROUND_STAKES[self.current_round - 1]
+        self.round_phase = "voting"
         self.correct_answer = None
         self.timer_expired = False
+        self.timer_start = time.time()
         for p in self.players.values():
             p["choice"] = None
             p["all_in"] = False
@@ -173,8 +177,43 @@ class GameState:
 
     def end_game(self):
         self._bump()
+        self._compute_titles()
         self.game_active = False
-        self.round_phase = "idle"
+        self.round_phase = "finished"
+
+    def _compute_titles(self):
+        """Compute titles for all players based on game performance."""
+        self.titles = {}
+        # Sort by score for ranking
+        ranked = sorted(self.players.items(), key=lambda x: x[1]["score"], reverse=True)
+        for rank, (uid, p) in enumerate(ranked, 1):
+            t = []
+            if rank == 1:
+                t.append("全场第一！")
+            elif rank == 2:
+                t.append("全场第二！")
+            # Gift record high
+            if p["score"] > p.get("initial_score", 10000):
+                t.append("礼物优胜新高")
+            # Forced ALL IN win
+            if p.get("forced_all_in_wins", 0) > 0:
+                t.append("绝地求生！")
+            # Gift tycoon
+            if p["score"] >= 150000:
+                t.append("礼物大亨")
+            # Eliminated by ALL IN
+            if p["eliminated"]:
+                all_in_elims = [r for h in self.history for r in h["results"]
+                                if r["uid"] == uid and r["result"] == "eliminated"]
+                if all_in_elims:
+                    t.append("功亏一篑")
+            # Never won
+            if p.get("wins", 0) == 0:
+                t.append("天意如此！")
+            # Barely breaking even
+            if p["score"] <= 149999 and not p["eliminated"]:
+                t.append("保本就算成功")
+            self.titles[uid] = t
 
     def add_player(self, uid: str, name: str) -> str | None:
         if uid in self.players:
@@ -182,7 +221,8 @@ class GameState:
         self._bump()
         self.players[uid] = {"name": name, "score": 10000,
                              "choice": None, "all_in": False, "eliminated": False,
-                             "confirmed": False}
+                             "confirmed": False, "initial_score": 10000,
+                             "max_score": 10000, "wins": 0, "forced_all_in_wins": 0}
         return uid
 
     def vote(self, uid: str, choice: str, all_in: bool = False) -> bool:
@@ -271,13 +311,13 @@ class GameState:
             "timer_expired": self.timer_expired,
             "players": players,
             "history": self.history,
+            "titles": self.titles,
             "voted_count": len(confirmed_list),
             "active_count": len(active),
         }
 
 
 game = GameState()
-# uid -> WebSocket
 all_ws: dict[str, WebSocket] = {}
 
 UID_RE = re.compile(r'^[A-Za-z0-9_-]{2,16}$')
@@ -285,7 +325,6 @@ UID_RE = re.compile(r'^[A-Za-z0-9_-]{2,16}$')
 
 async def broadcast():
     payload_cache = {}
-    # Each player gets their own view
     for uid, ws in list(all_ws.items()):
         try:
             if uid not in payload_cache:
@@ -296,11 +335,6 @@ async def broadcast():
             del all_ws[uid]
 
 
-# ── HTTP ────────────────────────────────────────────────────
-
-# ── HTTP ────────────────────────────────────────────────────
-
-# Serve built frontend (from dist/) if available, otherwise serve raw files
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "dist")
 if not os.path.isdir(STATIC_DIR):
     STATIC_DIR = os.path.dirname(__file__)
@@ -314,8 +348,6 @@ async def serve_index():
 app.mount("/", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-# ── Timer background task ───────────────────────────────────
-
 async def timer_loop():
     while True:
         await asyncio.sleep(1)
@@ -323,8 +355,6 @@ async def timer_loop():
             if game.check_timer():
                 await broadcast()
 
-
-# ── WebSocket ───────────────────────────────────────────────
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket):
@@ -337,12 +367,10 @@ async def ws_endpoint(ws: WebSocket):
             msg = json.loads(raw)
             action = msg.get("action")
 
-            # ── Join as player ──
             if action == "join":
                 name = msg.get("name", "").strip()
                 user_id = msg.get("user_id", "").strip()
                 admin_pwd = msg.get("admin_password", "")
-
                 if not name:
                     await ws.send_text(json.dumps({"type": "error", "message": "请输入昵称"}))
                     continue
@@ -350,19 +378,15 @@ async def ws_endpoint(ws: WebSocket):
                     await ws.send_text(json.dumps({"type": "error",
                                                    "message": "ID需2-16位，仅限字母数字下划线横杠"}))
                     continue
-
                 is_admin = admin_pwd == ADMIN_PASSWORD
-
                 async with game._lock:
                     if user_id in game.players:
-                        # If UID exists, check if the old connection is dead
                         if user_id in all_ws:
                             try:
                                 await all_ws[user_id].close()
                             except Exception:
                                 pass
                             del all_ws[user_id]
-                        # Allow re-join for existing player
                         uid = user_id
                         all_ws[uid] = ws
                     else:
@@ -372,13 +396,11 @@ async def ws_endpoint(ws: WebSocket):
                             continue
                         uid = user_id
                         all_ws[uid] = ws
-
                 await ws.send_text(json.dumps({"type": "joined", "user_id": uid,
                                                "is_admin": is_admin,
                                                "data": game.to_dict(for_player=uid)}))
                 await broadcast()
 
-            # ── Reconnect ──
             elif action == "reconnect":
                 old = msg.get("user_id", "").strip()
                 admin_pwd = msg.get("admin_password", "")
@@ -399,7 +421,6 @@ async def ws_endpoint(ws: WebSocket):
                 else:
                     await ws.send_text(json.dumps({"type": "error", "message": "ID不存在，请重新加入"}))
 
-            # ── Unlock admin (password check, no re-join) ──
             elif action == "unlock_admin":
                 pwd = msg.get("password", "")
                 if pwd == ADMIN_PASSWORD:
@@ -408,13 +429,11 @@ async def ws_endpoint(ws: WebSocket):
                 else:
                     await ws.send_text(json.dumps({"type": "error", "message": "密码错误"}))
 
-            # ── Sync ──
             elif action == "sync":
                 if uid and uid in game.players:
                     await ws.send_text(json.dumps({"type": "state",
                                                    "data": game.to_dict(for_player=uid)}))
 
-            # ── Vote ──
             elif action == "vote":
                 if uid and uid in game.players:
                     async with game._lock:
@@ -424,7 +443,6 @@ async def ws_endpoint(ws: WebSocket):
                     else:
                         await ws.send_text(json.dumps({"type": "error", "message": "无法投票"}))
 
-            # ── Confirm vote ──
             elif action == "confirm_vote":
                 if uid and uid in game.players:
                     async with game._lock:
@@ -434,25 +452,11 @@ async def ws_endpoint(ws: WebSocket):
                     else:
                         await ws.send_text(json.dumps({"type": "error", "message": "无法确认"}))
 
-            # ── Admin: start ──
             elif action == "start_game" and is_admin:
                 async with game._lock:
                     game.start_game()
                 await broadcast()
 
-            # ── Admin: set stake ──
-            elif action == "set_stake" and is_admin:
-                try:
-                    stake = int(msg.get("stake", 0))
-                    if stake <= 0:
-                        raise ValueError
-                    async with game._lock:
-                        game.set_stake(stake)
-                    await broadcast()
-                except (ValueError, TypeError):
-                    await ws.send_text(json.dumps({"type": "error", "message": "无效积分"}))
-
-            # ── Admin: set answer ──
             elif action == "set_answer" and is_admin:
                 ans = msg.get("answer")
                 if ans in ("left", "right"):
@@ -460,7 +464,6 @@ async def ws_endpoint(ws: WebSocket):
                         game.set_answer(ans)
                     await broadcast()
 
-            # ── Admin: rollback ──
             elif action == "rollback" and is_admin:
                 async with game._lock:
                     ok = game.rollback()
@@ -469,19 +472,16 @@ async def ws_endpoint(ws: WebSocket):
                 else:
                     await ws.send_text(json.dumps({"type": "error", "message": "无法回滚"}))
 
-            # ── Admin: next round ──
             elif action == "next_round" and is_admin:
                 async with game._lock:
                     game.next_round()
                 await broadcast()
 
-            # ── Admin: end game ──
             elif action == "end_game" and is_admin:
                 async with game._lock:
                     game.end_game()
                 await broadcast()
 
-            # ── Admin: send reminder ──
             elif action == "send_reminder" and is_admin:
                 reminder_text = msg.get("text", "请尽快确认你的选择！")
                 unconfirmed = game.get_unconfirmed()
